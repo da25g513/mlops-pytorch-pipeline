@@ -1,3 +1,4 @@
+import torch
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
@@ -53,7 +54,7 @@ def get_dataloaders(
         batch_size=batch_size,
         shuffle=True,
         num_workers=num_workers,
-        pin_memory=True,
+        pin_memory=torch.cuda.is_available(),
     )
 
     val_loader = DataLoader(
@@ -61,7 +62,7 @@ def get_dataloaders(
         batch_size=batch_size,
         shuffle=False,
         num_workers=num_workers,
-        pin_memory=True,
+        pin_memory=torch.cuda.is_available(),
     )
 
     return train_loader, val_loader
