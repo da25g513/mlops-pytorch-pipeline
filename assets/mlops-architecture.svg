@@ -1,0 +1,112 @@
+<svg width="1600" height="980" viewBox="0 0 1600 980" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .title { font: 700 44px 'Arial', sans-serif; fill: #111; }
+    .box { fill: #f7f7f7; stroke: #111; stroke-width: 3; rx: 18; }
+    .small { fill: #f8f8f8; stroke: #111; stroke-width: 3; rx: 18; }
+    .label { font: 600 28px 'Arial', sans-serif; fill: #111; }
+    .sub { font: 500 22px 'Arial', sans-serif; fill: #111; }
+    .bullet { font: 500 20px 'Arial', sans-serif; fill: #111; }
+    .tiny { font: 500 18px 'Arial', sans-serif; fill: #111; }
+    .arrow { stroke: #111; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+    .thin { stroke: #111; stroke-width: 2.5; fill: none; marker-end: url(#arrowhead); }
+  </style>
+
+  <defs>
+    <marker id="arrowhead" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#111"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1600" height="980" fill="#f3f3f3"/>
+
+  <text x="800" y="70" text-anchor="middle" class="title">MLOps PyTorch Pipeline – Architecture</text>
+
+  <!-- Left side -->
+  <rect x="70" y="180" width="240" height="200" class="box"/>
+  <text x="190" y="225" text-anchor="middle" class="label">1. Development</text>
+  <text x="190" y="255" text-anchor="middle" class="sub">(Local)</text>
+  <text x="190" y="305" text-anchor="middle" class="bullet">• Code (PyTorch)</text>
+  <text x="190" y="335" text-anchor="middle" class="bullet">• Config (YAML)</text>
+  <text x="190" y="365" text-anchor="middle" class="bullet">• Tests</text>
+
+  <rect x="420" y="180" width="240" height="200" class="box"/>
+  <text x="540" y="225" text-anchor="middle" class="label">2. Docker Images</text>
+  <text x="540" y="305" text-anchor="middle" class="bullet">• Training Image</text>
+  <text x="540" y="335" text-anchor="middle" class="sub">(mlops-train)</text>
+  <text x="540" y="365" text-anchor="middle" class="bullet">• Serving Image</text>
+  <text x="540" y="395" text-anchor="middle" class="sub">(mlops-serve)</text>
+
+  <rect x="760" y="180" width="250" height="200" class="box"/>
+  <text x="885" y="225" text-anchor="middle" class="label">3. Container</text>
+  <text x="885" y="255" text-anchor="middle" class="sub">Registry</text>
+  <text x="885" y="305" text-anchor="middle" class="sub">(Docker Hub)</text>
+  <text x="885" y="350" text-anchor="middle" class="bullet">Stores and provides</text>
+  <text x="885" y="380" text-anchor="middle" class="bullet">Docker images</text>
+
+  <!-- Right side cluster -->
+  <rect x="1060" y="110" width="440" height="420" class="small"/>
+  <text x="1280" y="155" text-anchor="middle" class="label">4. Kubernetes Cluster</text>
+
+  <rect x="1105" y="200" width="345" height="160" class="small"/>
+  <text x="1280" y="242" text-anchor="middle" class="sub">Training Job</text>
+  <text x="1280" y="272" text-anchor="middle" class="sub">(one-time)</text>
+  <text x="1200" y="310" class="bullet">• Loads config from</text>
+  <text x="1200" y="335" class="bullet">  ConfigMap</text>
+  <text x="1200" y="360" class="bullet">• Trains model</text>
+  <text x="1200" y="385" class="bullet">• Saves model to</text>
+  <text x="1200" y="410" class="bullet">  /app/checkpoints</text>
+
+  <rect x="1280" y="395" width="210" height="90" class="small"/>
+  <text x="1385" y="435" text-anchor="middle" class="sub">Persistent Volume</text>
+  <text x="1385" y="460" text-anchor="middle" class="sub">(PVC)</text>
+  <text x="1385" y="470" text-anchor="middle" class="tiny">Stores:</text>
+  <text x="1385" y="490" text-anchor="middle" class="tiny">/app/data and /app/checkpoints</text>
+
+  <rect x="1180" y="560" width="310" height="170" class="small"/>
+  <text x="1335" y="610" text-anchor="middle" class="sub">Serving Deployment</text>
+  <text x="1335" y="640" text-anchor="middle" class="sub">(Always Running)</text>
+  <text x="1225" y="685" class="bullet">• Loads model from</text>
+  <text x="1225" y="710" class="bullet">  /app/checkpoints</text>
+  <text x="1225" y="735" class="bullet">• Serves predictions</text>
+
+  <rect x="1520" y="610" width="220" height="150" class="small"/>
+  <text x="1630" y="655" text-anchor="middle" class="sub">Service</text>
+  <text x="1630" y="685" text-anchor="middle" class="sub">(ClusterIP)</text>
+  <text x="1630" y="725" text-anchor="middle" class="bullet">Exposes service</text>
+  <text x="1630" y="750" text-anchor="middle" class="bullet">internally</text>
+
+  <rect x="1275" y="805" width="140" height="110" class="small"/>
+  <text x="1345" y="845" text-anchor="middle" class="sub">Web Browser</text>
+  <rect x="1430" y="805" width="140" height="110" class="small"/>
+  <text x="1500" y="845" text-anchor="middle" class="sub">API Client</text>
+  <text x="1500" y="875" text-anchor="middle" class="tiny">(curl, Postman)</text>
+
+  <!-- arrows -->
+  <path d="M310 280 H420" class="arrow"/>
+  <path d="M660 280 H760" class="arrow"/>
+  <path d="M1010 280 H1060" class="arrow"/>
+  <path d="M1280 360 L1280 395" class="arrow"/>
+  <path d="M1385 485 L1385 560" class="arrow"/>
+  <path d="M1335 730 L1335 805" class="arrow"/>
+  <path d="M1490 660 H1520" class="arrow"/>
+  <path d="M1500 915 L1500 940" class="arrow"/>
+  <path d="M1345 915 L1345 940" class="arrow"/>
+
+  <!-- bottom boxes -->
+  <rect x="60" y="680" width="500" height="170" class="small"/>
+  <text x="310" y="725" text-anchor="middle" class="label">Flow Summary</text>
+  <text x="100" y="770" class="bullet">1. Develop code, config and tests locally</text>
+  <text x="100" y="800" class="bullet">2. Build Docker images for training and serving</text>
+  <text x="100" y="830" class="bullet">3. Push images to Docker Hub</text>
+  <text x="100" y="860" class="bullet">4. Kubernetes runs training job, saves model to PVC, and runs serving deployment</text>
+  <text x="100" y="890" class="bullet">5. Users access the service for predictions</text>
+
+  <rect x="620" y="680" width="500" height="170" class="small"/>
+  <text x="870" y="725" text-anchor="middle" class="label">Key Components</text>
+  <text x="660" y="770" class="bullet">• ConfigMap → holds training_config.yaml</text>
+  <text x="660" y="800" class="bullet">• PVC → persists data and model artifacts</text>
+  <text x="660" y="830" class="bullet">• Training Job → one-time training process</text>
+  <text x="660" y="860" class="bullet">• Serving Deployment → always-running inference service</text>
+  <text x="660" y="890" class="bullet">• Service → internal access for requests</text>
+
+</svg>
