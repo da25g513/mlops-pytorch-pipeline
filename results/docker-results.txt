@@ -1,0 +1,22 @@
+﻿(.venv) PS C:\Users\ishit\OneDrive\Documents\mlops-pytorch-pipeline> docker build -f docker/Dockerfile.train -t mlops-train:v1 .
+[+] Building ... FINISHED
+...
+=> naming to docker.io/library/mlops-train:v1
+
+(.venv) PS C:\Users\ishit\OneDrive\Documents\mlops-pytorch-pipeline> docker run --rm \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/checkpoints:/app/checkpoints \
+  mlops-train:v1
+{"event": "training_started", "device": "cpu", "architecture": "resnet18"}
+
+(.venv) PS C:\Users\ishit\OneDrive\Documents\mlops-pytorch-pipeline> docker build -f docker/Dockerfile.serve -t mlops-serve:v1 .
+[+] Building 1.9s (12/12) FINISHED
+...
+=> naming to docker.io/library/mlops-serve:v1
+
+(.venv) PS C:\Users\ishit\OneDrive\Documents\mlops-pytorch-pipeline> curl http://localhost:8080/health
+{"status":"ok","model_loaded":true}
+
+(.venv) PS C:\Users\ishit\OneDrive\Documents\mlops-pytorch-pipeline> curl -X POST http://localhost:8080/predict \
+  -F "image=@test_image.png"
+{"predicted_class":"deer","probabilities":{"airplane":2.5e-05,"automobile":3e-06,"bird":0.022665,"cat":0.000507,"deer":0.968698,"dog":0.001502,"frog":0.00343,"horse":0.003157,"ship":1.3e-05,"truck":1e-06}}
