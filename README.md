@@ -4,7 +4,7 @@ A simple end-to-end ML project for training and serving a CIFAR-10 image classif
 
 ## Architecture
 
-![MLOps PyTorch Pipeline Architecture](assets/mlops-architecture.svg)
+![MLOps PyTorch Pipeline Architecture](assets/mlops-architecture.png)
 
 ## What this project does
 
