@@ -1,0 +1,33 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV MODEL_PATH=/app/checkpoints/classifier_v1.pt
+
+COPY requirements/serve.txt .
+
+RUN pip install --no-cache-dir -r serve.txt
+
+COPY src/ ./src/
+
+RUN useradd \
+    --create-home \
+    --uid 10001 \
+    appuser \
+    && mkdir -p /app/checkpoints \
+    && chown -R appuser:appuser /app
+
+USER appuser
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=10s \
+    --timeout=5s \
+    --start-period=20s \
+    --retries=3 \
+    CMD python -c \
+    "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"
+
+CMD ["uvicorn", "src.serve:app", "--host", "0.0.0.0", "--port", "8080"]
