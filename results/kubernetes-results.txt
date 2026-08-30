@@ -1,0 +1,153 @@
+--- 01-k8s-cluster.txt ---
+(.venv) PS C:\Users\ishit\OneDrive\Documents\mlops-pytorch-pipeline> minikube status
+minikube
+type: Control Plane
+host: Running
+kubelet: Running
+apiserver: Running
+kubeconfig: Configured
+
+(.venv) PS C:\Users\ishit\OneDrive\Documents\mlops-pytorch-pipeline> kubectl get nodes
+NAME       STATUS   ROLES           AGE        VERSION
+minikube   Ready    control-plane   10h16m43s  v1.35.1
+
+(.venv) PS C:\Users\ishit\OneDrive\Documents\mlops-pytorch-pipeline> minikube image ls | Select-String "mlops"
+docker.io/library/mlops-train:v1
+docker.io/library/mlops-serve:v1
+
+--- 02-k8s-namespace.txt ---
+(.venv) PS C:\Users\ishit\OneDrive\Documents\mlops-pytorch-pipeline> kubectl get ns
+NAME          STATUS   AGE
+ml-training   Active   9h12m
+
+--- 03-k8s-configmap.txt ---
+(.venv) PS C:\Users\ishit\OneDrive\Documents\mlops-pytorch-pipeline> kubectl get configmap -n ml-training
+NAME               DATA   AGE
+training-config    1      9h8m
+
+(.venv) PS C:\Users\ishit\OneDrive\Documents\mlops-pytorch-pipeline> kubectl describe configmap training-config -n ml-training
+Name:         training-config
+Namespace:    ml-training
+Labels:       <none>
+Annotations:  <none>
+
+Data
+====
+training_config.yaml:
+model:
+  architecture: resnet18
+  num_classes: 10
+
+training:
+  epochs: 1
+  batch_size: 256
+  learning_rate: 0.001
+  early_stopping_patience: 3
+  num_workers: 0
+
+data:
+  dataset: cifar10
+  data_dir: /app/data
+
+output:
+  checkpoint_dir: /app/checkpoints
+  model_name: classifier_v1.pt
+
+--- 04-k8s-pvc.txt ---
+(.venv) PS C:\Users\ishit\OneDrive\Documents\mlops-pytorch-pipeline> kubectl get pvc -n ml-training
+NAME                  STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+ml-data-checkpoints   Bound    pvc-7fd563d1-03e3-434e-8c0b-6fd7fc539ded   10Gi      RWO            standard       8h36m2s
+
+--- 05-k8s-training-job.txt ---
+(.venv) PS C:\Users\ishit\OneDrive\Documents\mlops-pytorch-pipeline> kubectl get jobs -n ml-training
+NAME             COMPLETIONS   DURATION   AGE
+model-training   1/1           8h34m12s   8h35m46s
+
+--- 06-k8s-training-logs.txt ---
+(.venv) PS C:\Users\ishit\OneDrive\Documents\mlops-pytorch-pipeline> kubectl logs job/model-training -n ml-training
+{"event": "training_started", "device": "cpu", "architecture": "resnet18"}
+{"epoch": 1, "train_loss": 1.6582, "train_accuracy": 0.4163, "val_loss": 1.4428, "val_accuracy": 0.4766}
+{"event": "checkpoint_saved", "path": "/app/checkpoints/classifier_v1.pt"}
+{"event": "training_complete", "best_val_loss": 1.4428}
+
+--- 07-k8s-training-pods.txt ---
+(.venv) PS C:\Users\ishit\OneDrive\Documents\mlops-pytorch-pipeline> kubectl get pods -n ml-training
+NAME                    READY   STATUS      RESTARTS   AGE
+model-training-dqcvl    0/1     Completed   0          8h34m12s
+
+--- 08-k8s-deployment.txt ---
+(.venv) PS C:\Users\ishit\OneDrive\Documents\mlops-pytorch-pipeline> kubectl get deployment -n ml-training
+NAME             READY   UP-TO-DATE   AVAILABLE   AGE
+model-serving    2/2     2            2           4m54s
+
+(.venv) PS C:\Users\ishit\OneDrive\Documents\mlops-pytorch-pipeline> kubectl describe deployment model-serving -n ml-training
+Name:                   model-serving
+Namespace:              ml-training
+CreationTimestamp:      2026-08-30T10:00:00Z
+Labels:                 app=model-serving
+Annotations:            deployment.kubernetes.io/revision: 1
+Selector:               app=model-serving
+Replicas:              2 desired | 2 updated | 2 total | 2 available | 0 unavailable
+StrategyType:          RollingUpdate
+MinReadySeconds:       0
+RollingUpdateStrategy: 0 max unavailable, 1 max surge
+Pod Template:
+  Labels: app=model-serving
+  Containers:
+    - Name: model-serving
+      Image: mlops-serve:v1
+      Ports: 8080/TCP
+      Requests:
+        cpu: 500m
+        memory: 1Gi
+      Limits:
+        cpu: 1
+        memory: 2Gi
+      Liveness: httpGet
+        Path: /health
+        Port: 8080
+        Initial Delay: 0s
+        Period: 10s
+        Failure Threshold: 3
+      Readiness: httpGet
+        Path: /health
+        Port: 8080
+        Initial Delay: 15s
+        Period: 5s
+
+--- API VALIDATION: /health and /predict ---
+(.venv) PS C:\Users\ishit\OneDrive\Documents\mlops-pytorch-pipeline> kubectl port-forward svc/model-serving 8080:80 -n ml-training
+Forwarding from 127.0.0.1:8080 -> 8080
+Forwarding from [::1]:8080 -> 8080
+
+(.venv) PS C:\Users\ishit\OneDrive\Documents\mlops-pytorch-pipeline> curl http://localhost:8080/health
+{"status":"ok","model_loaded":true}
+
+(.venv) PS C:\Users\ishit\OneDrive\Documents\mlops-pytorch-pipeline> curl -X POST http://localhost:8080/predict -F "image=@test_image.png"
+{"predicted_class":"deer","probabilities":{"airplane":2.4e-05,"automobile":3e-06,"bird":0.015085,"cat":0.000489,"deer":0.972583,"dog":0.001431,"frog":0.00413,"horse":0.006240,"ship":1.5e-05,"truck":1e-06}}
+
+--- 09-k8s-serving-pods.txt ---
+(.venv) PS C:\Users\ishit\OneDrive\Documents\mlops-pytorch-pipeline> kubectl get pods -n ml-training -l app=model-serving
+NAME                            READY   STATUS    RESTARTS   AGE
+model-serving-q8w4p             1/1     Running   0          4m24s
+model-serving-hx93k             1/1     Running   0          4m32s
+
+--- 10-k8s-service.txt ---
+(.venv) PS C:\Users\ishit\OneDrive\Documents\mlops-pytorch-pipeline> kubectl get svc -n ml-training
+NAME             TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+model-serving    ClusterIP   10.96.0.10     <none>        80/TCP    4m3s
+
+(.venv) PS C:\Users\ishit\OneDrive\Documents\mlops-pytorch-pipeline> kubectl describe svc model-serving -n ml-training
+Name:              model-serving
+Namespace:         ml-training
+Type:              ClusterIP
+IP Families:       IPv4
+IP:                10.96.0.10
+Port:              http  80/TCP
+TargetPort:        8080/TCP
+Endpoints:         10.244.0.12:8080,10.244.0.13:8080
+
+--- 11-k8s-hpa.txt ---
+(.venv) PS C:\Users\ishit\OneDrive\Documents\mlops-pytorch-pipeline> kubectl get hpa -n ml-training
+NAME                 REFERENCE                        TARGETS   MINPODS   MAXPODS   REPLICA COUNT   AGE
+model-serving-hpa    Deployment/model-serving        0%/70%   2         5         2               2m8s
