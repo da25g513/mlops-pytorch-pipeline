@@ -1,0 +1,7 @@
+The biggest challenge was the Kubernetes training Job. Initially, the Job stayed at 0/1 for a long time. I had to check the Pod status, logs, ConfigMap, and persistent volume to find the reason. The logs showed that the training had started, but the model was taking a very long time to complete the first epoch. I tested the DataLoader inside the container and confirmed that the CIFAR-10 dataset was available and batches were loading correctly. This helped me understand that the main issue was the slow CPU training rather than a Kubernetes configuration error.
+
+Another challenge was understanding how the Kubernetes ConfigMap works. Changing the local training configuration was not enough because Kubernetes was using the configuration stored in the ConfigMap. I had to make sure that the updated configuration was applied to Kubernetes as well.
+
+The Git workflow was also a learning experience. The assignment required using main, develop, and feature branches with pull requests. I initially worked on main, but I learned how to create the correct branch structure and use feature branches for development.
+
+Overall, the assignment helped me understand how a machine learning project moves from Python code to Docker containers and then to Kubernetes. More importantly, I learned how to troubleshoot problems by checking logs and verifying each part of the system instead of assuming that the platform was the problem. The Kubernetes training issue was the most challenging part, but solving it gave me a better understanding of deploying ML workloads.
